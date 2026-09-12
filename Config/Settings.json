@@ -1,0 +1,23 @@
+{
+  "_comment": [
+    "Application-wide settings. Most operators will not need to change this file.",
+    "Properties named _comment or beginning with _comment_ are notes and are ignored by Server Postflight."
+  ],
+  "LogFolder": "Logs",
+  "ReportFolder": "Reports",
+  "HttpTimeoutSeconds": 15,
+  "TcpTimeoutSeconds": 3,
+  "RemoteTimeoutSeconds": 20,
+  "PingCount": 2,
+  "DefaultTcpPort": 3389,
+  "DefaultMaxResponseMilliseconds": 3000,
+  "ExpectedRebootWithinHours": 0,
+  "CertificateWarningDays": 30,
+  "CpuWarningPercent": 90,
+  "MemoryWarningPercent": 10,
+  "DiskWarningPercent": 15,
+  "DiskFailurePercent": 5,
+  "SkipCertificateValidation": false,
+  "SkipRemoteChecks": false,
+  "UseCredentialDialog": false
+}

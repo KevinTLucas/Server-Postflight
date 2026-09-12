@@ -1,0 +1,41 @@
+{
+  "_comment": [
+    "Complete WebChecks.json reference. These examples are not run.",
+    "Name and Url are required. ExpectedCode defaults to 200 when omitted.",
+    "MaxResponseMilliseconds uses the setting default when omitted. MustContain is optional."
+  ],
+  "WebChecks": [
+    {
+      "_comment": "Minimal check using expected HTTP 200 and the default response-time limit.",
+      "Name": "Minimal HTTPS check",
+      "Url": "https://apps.district.org/health"
+    },
+    {
+      "_comment": "Complete success check with a required response-body phrase.",
+      "Name": "Application health page",
+      "Url": "https://apps.district.org/health",
+      "ExpectedCode": 200,
+      "MaxResponseMilliseconds": 2500,
+      "MustContain": "healthy"
+    },
+    {
+      "_comment": "ExpectedCode can be a list when more than one response is acceptable.",
+      "Name": "Multiple acceptable codes",
+      "Url": "https://api.district.org/status",
+      "ExpectedCode": [200, 204]
+    },
+    {
+      "_comment": "When a redirect code is expected, Server Postflight inspects the redirect without following it.",
+      "Name": "Expected login redirect",
+      "Url": "https://apps.district.org/login",
+      "ExpectedCode": 302
+    },
+    {
+      "_comment": "HTTP is supported. A per-check response limit of 0 disables the response-time warning.",
+      "Name": "Internal HTTP endpoint",
+      "Url": "http://app-server-01:8080/health",
+      "ExpectedCode": 200,
+      "MaxResponseMilliseconds": 0
+    }
+  ]
+}
