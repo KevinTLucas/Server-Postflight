@@ -1,0 +1,123 @@
+﻿<!doctype html>
+<html lang="en">
+<head>
+  <meta charset="utf-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1">
+  <meta http-equiv="Content-Security-Policy" content="default-src 'none'; style-src 'unsafe-inline'">
+  <title>Server Postflight Report - 2026-09-12 09:30:15</title>
+  <style>
+    :root { color-scheme: light; --ink:#172033; --muted:#667085; --line:#dfe4ec; --panel:#fff; --page:#f3f6fa; --pass:#087f5b; --pass-bg:#e8f7f1; --warn:#9a6700; --warn-bg:#fff5d6; --fail:#c92a2a; --fail-bg:#fff0f0; --info:#1864ab; --info-bg:#eaf4ff; --skip:#667085; --skip-bg:#f2f4f7; }
+    * { box-sizing:border-box; }
+    body { margin:0; background:var(--page); color:var(--ink); font:15px/1.5 "Segoe UI", Arial, sans-serif; }
+    .shell { width:min(1180px, calc(100% - 32px)); margin:32px auto 48px; }
+    .hero { color:#fff; padding:30px; border-radius:18px; background:linear-gradient(135deg,#14213d,#21466f); box-shadow:0 12px 32px rgba(20,33,61,.18); }
+    .hero-top { display:flex; justify-content:space-between; align-items:flex-start; gap:24px; }
+    h1 { margin:3px 0 5px; font-size:clamp(26px,4vw,38px); letter-spacing:-.03em; }
+    h2 { margin:2px 0; font-size:20px; }
+    .eyebrow { margin:0; color:#8ed8ff; font-size:12px; font-weight:700; letter-spacing:.12em; text-transform:uppercase; }
+    .hero .sub { margin:0; color:#c8d5e6; }
+    .overall { max-width:360px; padding:14px 16px; border:1px solid rgba(255,255,255,.25); border-radius:12px; background:rgba(255,255,255,.09); }
+    .overall.pass { border-color:#5bd0a3; background:rgba(8,127,91,.28); } .overall.warn { border-color:#f6c453; background:rgba(154,103,0,.28); } .overall.fail { border-color:#ff8787; background:rgba(201,42,42,.3); }
+    .overall strong { display:block; margin-bottom:3px; font-size:17px; }
+    .overall p { margin:0; color:#e8eef7; }
+    .stats { display:grid; grid-template-columns:repeat(4,1fr); gap:12px; margin-top:25px; }
+    .stat { padding:14px 16px; border-radius:11px; background:rgba(255,255,255,.1); }
+    .stat span { display:block; color:#c8d5e6; font-size:12px; text-transform:uppercase; letter-spacing:.08em; }
+    .stat strong { font-size:25px; }
+    .meta { display:grid; grid-template-columns:repeat(3,1fr); gap:16px; margin:18px 0 28px; padding:16px 20px; border:1px solid var(--line); border-radius:12px; background:var(--panel); color:var(--muted); }
+    .meta b { display:block; color:var(--ink); }
+    .section-title { margin:30px 0 12px; font-size:21px; }
+    .target-card { overflow:hidden; margin:14px 0; border:1px solid var(--line); border-left:5px solid var(--skip); border-radius:14px; background:var(--panel); box-shadow:0 4px 14px rgba(16,24,40,.05); }
+    .target-card.pass { border-left-color:var(--pass); } .target-card.warn { border-left-color:var(--warn); } .target-card.fail { border-left-color:var(--fail); }
+    .target-card header { display:flex; align-items:center; justify-content:space-between; gap:16px; padding:18px 20px 15px; }
+    .target-card .eyebrow { color:var(--info); }
+    .destination { overflow-wrap:anywhere; margin:2px 0 0; color:var(--muted); }
+    .table-wrap { overflow-x:auto; }
+    table { width:100%; border-collapse:collapse; }
+    th,td { padding:12px 16px; border-top:1px solid var(--line); text-align:left; vertical-align:top; }
+    th { background:#f8fafc; color:var(--muted); font-size:11px; letter-spacing:.08em; text-transform:uppercase; }
+    .strong { font-weight:600; }
+    .status { display:inline-block; min-width:52px; padding:3px 8px; border-radius:999px; background:var(--skip-bg); color:var(--skip); font-size:11px; font-weight:800; letter-spacing:.05em; text-align:center; }
+    .status.pass { color:var(--pass); background:var(--pass-bg); } .status.warn { color:var(--warn); background:var(--warn-bg); } .status.fail { color:var(--fail); background:var(--fail-bg); } .status.info { color:var(--info); background:var(--info-bg); }
+    .status.large { min-width:64px; padding:6px 11px; font-size:12px; }
+    .summary { overflow:hidden; border:1px solid var(--line); border-radius:14px; background:var(--panel); box-shadow:0 4px 14px rgba(16,24,40,.05); }
+    footer { margin-top:25px; color:var(--muted); font-size:13px; text-align:center; }
+    @media (max-width:700px) { .hero-top { display:block; } .overall { max-width:none; margin-top:18px; } .stats { grid-template-columns:repeat(2,1fr); } .meta { grid-template-columns:1fr; } .shell { width:min(100% - 18px,1180px); margin-top:9px; } .hero { padding:22px; border-radius:13px; } }
+    @media print { body { background:#fff; } .shell { width:100%; margin:0; } .hero,.target-card,.summary { box-shadow:none; } .target-card { break-inside:avoid; } }
+  </style>
+</head>
+<body>
+<main class="shell">
+  <section class="hero">
+    <div class="hero-top"><div><p class="eyebrow">DEMO &bull; SYNTHETIC DATA</p><h1>Server Postflight Report</h1><p class="sub">Run started 2026-09-12 09:30:15</p></div><div class="overall fail"><strong>FAIL</strong><p>Attention required: review the failed checks below.</p></div></div>
+    <div class="stats"><div class="stat"><span>Total targets</span><strong>6</strong></div><div class="stat"><span>Passed</span><strong>2</strong></div><div class="stat"><span>Warnings</span><strong>2</strong></div><div class="stat"><span>Failed</span><strong>2</strong></div></div>
+  </section>
+  <section class="meta"><div>Operator<b>EXAMPLE\demo.operator</b></div><div>Computer<b>DEMO-CONSOLE-01</b></div><div>Elapsed<b>18.4 seconds</b></div><div>Configuration<b>C:\Demo\Server-Postflight\Config</b></div><div>Text log<b>ServerPostflight-Demo.log</b></div><div>CSV data<b>ServerPostflight-Demo.csv</b></div></section>
+  <h2 class="section-title">Summary</h2>
+  <div class="summary table-wrap"><table><thead><tr><th>Status</th><th>Name</th><th>Type</th><th>Detail</th></tr></thead><tbody><tr><td><span class="status pass">PASS</span></td><td class="strong">Demo Web Server</td><td>SERVER</td><td>80=open; 443=open  uptime 2h 18m</td></tr>
+<tr><td><span class="status warn">WARN</span></td><td class="strong">Demo Application Server</td><td>SERVER</td><td>WARN:Uptime</td></tr>
+<tr><td><span class="status fail">FAIL</span></td><td class="strong">Demo Database Server</td><td>SERVER</td><td>FAIL:Disk C:; FAIL:Svc MSSQLSERVER</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Demo Customer Portal</td><td>HTTP</td><td>HTTP 200 in 184 ms</td></tr>
+<tr><td><span class="status warn">WARN</span></td><td class="strong">Demo Orders API</td><td>HTTP</td><td>WARN:Response time</td></tr>
+<tr><td><span class="status fail">FAIL</span></td><td class="strong">Demo Billing Dashboard</td><td>HTTP</td><td>FAIL:HTTP status</td></tr></tbody></table></div>
+  <h2 class="section-title">Detailed checks</h2>
+  <section class="target-card pass">
+  <header><div><p class="eyebrow">SERVER</p><h2>Demo Web Server</h2><p class="destination">demo-web-01.corp.example</p></div><span class="status large pass">PASS</span></header>
+  <div class="table-wrap"><table><thead><tr><th>Status</th><th>Check</th><th>Detail</th></tr></thead><tbody><tr><td><span class="status pass">PASS</span></td><td class="strong">DNS</td><td>192.0.2.10</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Ping</td><td>12 ms average</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">TCP 80</td><td>open</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">TCP 443</td><td>open</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Uptime</td><td>2h 18m; last boot 2026-09-12 07:12:00</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">CPU</td><td>27% load</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Memory</td><td>62.1% free</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Svc W3SVC</td><td>Running (start mode: Auto)</td></tr></tbody></table></div>
+</section>
+<section class="target-card warn">
+  <header><div><p class="eyebrow">SERVER</p><h2>Demo Application Server</h2><p class="destination">demo-app-01.corp.example</p></div><span class="status large warn">WARN</span></header>
+  <div class="table-wrap"><table><thead><tr><th>Status</th><th>Check</th><th>Detail</th></tr></thead><tbody><tr><td><span class="status pass">PASS</span></td><td class="strong">DNS</td><td>198.51.100.20</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Ping</td><td>18 ms average</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">TCP 443</td><td>open</td></tr>
+<tr><td><span class="status warn">WARN</span></td><td class="strong">Uptime</td><td>31h 44m exceeds expected 24 hours</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">CPU</td><td>41% load</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Memory</td><td>34.7% free</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Proc DemoApp.exe</td><td>2 running (PID 4104, 6220), 612 MB memory</td></tr></tbody></table></div>
+</section>
+<section class="target-card fail">
+  <header><div><p class="eyebrow">SERVER</p><h2>Demo Database Server</h2><p class="destination">demo-db-01.corp.example</p></div><span class="status large fail">FAIL</span></header>
+  <div class="table-wrap"><table><thead><tr><th>Status</th><th>Check</th><th>Detail</th></tr></thead><tbody><tr><td><span class="status pass">PASS</span></td><td class="strong">DNS</td><td>203.0.113.30</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Ping</td><td>7 ms average</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">TCP 1433</td><td>open</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Uptime</td><td>3h 05m; last boot 2026-09-12 06:25:00</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">CPU</td><td>22% load</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Memory</td><td>48.3% free</td></tr>
+<tr><td><span class="status fail">FAIL</span></td><td class="strong">Disk C:</td><td>3.8% free (4.6 GB of 120 GB)</td></tr>
+<tr><td><span class="status fail">FAIL</span></td><td class="strong">Svc MSSQLSERVER</td><td>Stopped (start mode: Auto)</td></tr></tbody></table></div>
+</section>
+<section class="target-card pass">
+  <header><div><p class="eyebrow">HTTP</p><h2>Demo Customer Portal</h2><p class="destination">https://portal.example/health</p></div><span class="status large pass">PASS</span></header>
+  <div class="table-wrap"><table><thead><tr><th>Status</th><th>Check</th><th>Detail</th></tr></thead><tbody><tr><td><span class="status pass">PASS</span></td><td class="strong">DNS</td><td>192.0.2.40</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">TLS expiry</td><td>portal.example; expires 2027-06-30 (290 days)</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">HTTP status</td><td>got 200, expected 200 (184 ms)</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Response time</td><td>184 ms (limit 1000 ms)</td></tr>
+<tr><td><span class="status info">INFO</span></td><td class="strong">Body size</td><td>842 characters</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">Content match</td><td>found &#39;healthy&#39;</td></tr></tbody></table></div>
+</section>
+<section class="target-card warn">
+  <header><div><p class="eyebrow">HTTP</p><h2>Demo Orders API</h2><p class="destination">https://api.example/status</p></div><span class="status large warn">WARN</span></header>
+  <div class="table-wrap"><table><thead><tr><th>Status</th><th>Check</th><th>Detail</th></tr></thead><tbody><tr><td><span class="status pass">PASS</span></td><td class="strong">DNS</td><td>198.51.100.40</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">TLS expiry</td><td>api.example; expires 2027-05-15 (244 days)</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">HTTP status</td><td>got 200, expected 200 or 204 (1450 ms)</td></tr>
+<tr><td><span class="status warn">WARN</span></td><td class="strong">Response time</td><td>1450 ms (limit 1000 ms)</td></tr>
+<tr><td><span class="status info">INFO</span></td><td class="strong">Body size</td><td>126 characters</td></tr></tbody></table></div>
+</section>
+<section class="target-card fail">
+  <header><div><p class="eyebrow">HTTP</p><h2>Demo Billing Dashboard</h2><p class="destination">https://billing.example/health</p></div><span class="status large fail">FAIL</span></header>
+  <div class="table-wrap"><table><thead><tr><th>Status</th><th>Check</th><th>Detail</th></tr></thead><tbody><tr><td><span class="status pass">PASS</span></td><td class="strong">DNS</td><td>203.0.113.40</td></tr>
+<tr><td><span class="status pass">PASS</span></td><td class="strong">TLS expiry</td><td>billing.example; expires 2027-04-18 (217 days)</td></tr>
+<tr><td><span class="status fail">FAIL</span></td><td class="strong">HTTP status</td><td>got 503, expected 200 (391 ms)</td></tr>
+<tr><td><span class="status info">INFO</span></td><td class="strong">Body size</td><td>78 characters</td></tr></tbody></table></div>
+</section>
+  <footer>Generated locally by Server Postflight at 2026-09-12 09:30:33.</footer>
+</main>
+</body>
+</html>

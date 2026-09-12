@@ -9,11 +9,6 @@ checks in plain JSON files, double-click **Run Server Postflight.cmd**, enter a
 password only if prompted, and review the color-coded results. Every run also
 creates a timestamped text log, CSV file, and formatted HTML report.
 
-“Postflight” means the final checklist performed after maintenance, before the
-servers and applications are handed back to their users. If you only need to run
-the check, follow **Quick start**. The remaining sections teach you how to read the
-results, safely change every configuration option, and troubleshoot a failure.
-
 ## What Server Postflight answers
 
 After a maintenance window, Server Postflight helps answer these questions:
@@ -31,6 +26,53 @@ After a maintenance window, Server Postflight helps answer these questions:
 
 Server Postflight combines those answers into one PASS, WARN, or FAIL result for
 each configured server or web check.
+
+## Demo
+
+The demo area contains sanitized example output. The downloadable log, CSV, and
+HTML report use synthetic data only: hostnames use the reserved `.example`
+namespace, IP addresses use RFC 5737 documentation ranges, and account and
+computer names are fictional.
+
+The matching [HTML report](Demo/Reports/ServerPostflight-Demo.html),
+[CSV data](Demo/Logs/ServerPostflight-Demo.csv), and
+[text log](Demo/Logs/ServerPostflight-Demo.log) are generated from the exact same six
+targets in `Config\Examples`. The screenshots show the credential prompts,
+console checks, summary, log, and HTML report produced by the application.
+
+### Example console output
+
+#### Credential prompts
+
+![Initial credential prompt](Demo/Screenshots/credential-prompt.png)
+
+![Credential supplied and next prompt](Demo/Screenshots/credential-supplied.png)
+
+#### Server checks
+
+![Server service-check results](Demo/Screenshots/server-service-check-results.png)
+
+![Server process-check results](Demo/Screenshots/server-process-check-results.png)
+
+#### Web checks
+
+![HTTP web-check results](Demo/Screenshots/web-check-results.png)
+
+#### Summary
+
+![Postflight summary](Demo/Screenshots/postflight-summary.png)
+
+### Example generated files
+
+#### Text log
+
+![Generated postflight text log](Demo/Screenshots/text-log.png)
+
+#### HTML report
+
+![Generated HTML report overview](Demo/Screenshots/html-report-overview.png)
+
+![HTML report target results](Demo/Screenshots/html-report-target-results.png)
 
 ## What it does not do
 
@@ -179,7 +221,7 @@ JSON is structured text. These rules prevent most editing errors:
 - Do not put a comma after the final item in an object or list.
 - Square brackets contain a list: `[3389, 443]`.
 - Curly braces contain one server, web check, or group of settings.
-- Windows account names need two backslashes: `"DISTRICT\\user"`.
+- Windows account names need two backslashes: `"EXAMPLE\\demo_user"`.
 - Boolean settings are `true` or `false` without quotes.
 - Numbers do not use quotes.
 
@@ -221,7 +263,7 @@ such as `"ExpectedCodes"` cannot silently disable a real check.
       "Name": "Application VM",
       "Host": "APP-SERVER-01",
       "Port": [3389, 443],
-      "User": "DISTRICT\\monitoring_user",
+      "User": "EXAMPLE\\svc_postflight_demo",
       "Info": ["uptime", "os", "memory", "cpu", "disk"],
       "Services": ["W3SVC"],
       "Processes": ["MyApplication.exe"]
@@ -304,7 +346,7 @@ working memory.
   "WebChecks": [
     {
       "Name": "Application health page",
-      "Url": "https://apps.district.org/health",
+      "Url": "https://portal.example/health",
       "ExpectedCode": 200,
       "MaxResponseMilliseconds": 2500,
       "MustContain": "healthy"
@@ -508,6 +550,7 @@ was moved away from the other files, restore the complete folder structure.
 | `Config\ServerChecks.json` | Local-only Windows server checks; excluded from Git. |
 | `Config\WebChecks.json` | Local-only website and HTTP endpoint checks; excluded from Git. |
 | `Config\Examples` | Complete reference configurations that are not run. |
+| `Demo` | Sanitized example logs, reports, and screenshots; contains no runnable code. |
 | `Logs` | Created automatically for text logs and CSV data. |
 | `Reports` | Created automatically for timestamped HTML reports. |
 | `Test-ServerPostflight.ps1` | Offline developer smoke test. Operators do not run it. |

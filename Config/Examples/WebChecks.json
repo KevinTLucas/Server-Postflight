@@ -6,34 +6,24 @@
   ],
   "WebChecks": [
     {
-      "_comment": "Minimal check using expected HTTP 200 and the default response-time limit.",
-      "Name": "Minimal HTTPS check",
-      "Url": "https://apps.district.org/health"
-    },
-    {
-      "_comment": "Complete success check with a required response-body phrase.",
-      "Name": "Application health page",
-      "Url": "https://apps.district.org/health",
+      "_comment": "Synthetic successful portal check matching the files in Logs and Reports.",
+      "Name": "Demo Customer Portal",
+      "Url": "https://portal.example/health",
       "ExpectedCode": 200,
-      "MaxResponseMilliseconds": 2500,
+      "MaxResponseMilliseconds": 1000,
       "MustContain": "healthy"
     },
     {
-      "_comment": "ExpectedCode can be a list when more than one response is acceptable.",
-      "Name": "Multiple acceptable codes",
-      "Url": "https://api.district.org/status",
-      "ExpectedCode": [200, 204]
+      "_comment": "Synthetic slow API check demonstrating a warning and multiple acceptable codes.",
+      "Name": "Demo Orders API",
+      "Url": "https://api.example/status",
+      "ExpectedCode": [200, 204],
+      "MaxResponseMilliseconds": 1000
     },
     {
-      "_comment": "When a redirect code is expected, Server Postflight inspects the redirect without following it.",
-      "Name": "Expected login redirect",
-      "Url": "https://apps.district.org/login",
-      "ExpectedCode": 302
-    },
-    {
-      "_comment": "HTTP is supported. A per-check response limit of 0 disables the response-time warning.",
-      "Name": "Internal HTTP endpoint",
-      "Url": "http://app-server-01:8080/health",
+      "_comment": "Synthetic unavailable dashboard check. A zero response limit disables timing warnings.",
+      "Name": "Demo Billing Dashboard",
+      "Url": "https://billing.example/health",
       "ExpectedCode": 200,
       "MaxResponseMilliseconds": 0
     }

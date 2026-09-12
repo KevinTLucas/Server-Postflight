@@ -1,0 +1,7 @@
+﻿"CheckTime","Name","Type","Target","Status","IPAddress","PingMs","Ports","Uptime","LastBoot","CpuPct","MemFreePct","Expected","ActualCode","ResponseMs","MaxResponseMs","CertExpires","CertDaysLeft","Problems"
+"2026-09-12 09:30:15","Demo Web Server","server","demo-web-01.corp.example","PASS","192.0.2.10","12","80=open; 443=open","2h 18m","2026-09-12 07:12:00","27","62.1","","","","","","",""
+"2026-09-12 09:30:15","Demo Application Server","server","demo-app-01.corp.example","WARN","198.51.100.20","18","443=open","31h 44m","2026-09-11 01:46:00","41","34.7","","","","","","","WARN:Uptime"
+"2026-09-12 09:30:15","Demo Database Server","server","demo-db-01.corp.example","FAIL","203.0.113.30","7","1433=open; 3389=open","3h 05m","2026-09-12 06:25:00","22","48.3","","","","","","","FAIL:Disk C:; FAIL:Svc MSSQLSERVER"
+"2026-09-12 09:30:15","Demo Customer Portal","http","https://portal.example/health","PASS","192.0.2.40","","","","","","","200","200","184","1000","2027-06-30","290",""
+"2026-09-12 09:30:15","Demo Orders API","http","https://api.example/status","WARN","198.51.100.40","","","","","","","200 or 204","200","1450","1000","2027-05-15","244","WARN:Response time"
+"2026-09-12 09:30:15","Demo Billing Dashboard","http","https://billing.example/health","FAIL","203.0.113.40","","","","","","","200","503","391","0","2027-04-18","217","FAIL:HTTP status"

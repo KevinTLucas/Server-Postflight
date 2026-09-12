@@ -608,6 +608,34 @@ function Test-ServerTarget {
     }
 }
 
+function New-CertificateProbeStream {
+    param([IO.Stream]$Stream)
+    if (-not ('ServerPostflight.TlsCertificateProbe' -as [type])) {
+        Add-Type -TypeDefinition @'
+using System.IO;
+using System.Net.Security;
+using System.Security.Cryptography.X509Certificates;
+
+namespace ServerPostflight
+{
+    public static class TlsCertificateProbe
+    {
+        public static SslStream CreateStream(Stream stream)
+        {
+            return new SslStream(stream, false, AcceptAnyCertificate);
+        }
+
+        private static bool AcceptAnyCertificate(object sender, X509Certificate certificate, X509Chain chain, SslPolicyErrors errors)
+        {
+            return true;
+        }
+    }
+}
+'@
+    }
+    [ServerPostflight.TlsCertificateProbe]::CreateStream($Stream)
+}
+
 function Test-Certificate {
     param([Uri]$Uri, [System.Collections.ArrayList]$Checks, $Row)
     $client = New-Object Net.Sockets.TcpClient
@@ -620,7 +648,7 @@ function Test-Certificate {
             throw "connection to $($Uri.Host):$($Uri.Port) timed out"
         }
         $client.EndConnect($async)
-        $stream = New-Object Net.Security.SslStream($client.GetStream(), $false, { $true })
+        $stream = New-CertificateProbeStream $client.GetStream()
         $authentication = $stream.BeginAuthenticateAsClient($Uri.Host, $null, $null)
         if (-not $authentication.AsyncWaitHandle.WaitOne($script:Settings.TcpTimeoutSeconds * 1000, $false)) {
             throw "TLS negotiation with $($Uri.Host) timed out"

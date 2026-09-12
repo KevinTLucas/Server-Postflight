@@ -1,0 +1,86 @@
+﻿SERVER POSTFLIGHT - DEMO MODE - SYNTHETIC DATA
+Run started : 2026-09-12 09:30:15
+Run by      : EXAMPLE\demo.operator from DEMO-CONSOLE-01
+Config      : C:\Demo\Server-Postflight\Config
+Targets     : 6
+Credential  : supplied for EXAMPLE\svc_postflight_demo (synthetic demo only)
+
+Demo Web Server [SERVER]
+  Target : demo-web-01.corp.example
+  [ PASS ] DNS                    192.0.2.10
+  [ PASS ] Ping                   12 ms average
+  [ PASS ] TCP 80                 open
+  [ PASS ] TCP 443                open
+  [ PASS ] Uptime                 2h 18m; last boot 2026-09-12 07:12:00
+  [ PASS ] CPU                    27% load
+  [ PASS ] Memory                 62.1% free
+  [ PASS ] Svc W3SVC              Running (start mode: Auto)
+  RESULT: PASS
+
+Demo Application Server [SERVER]
+  Target : demo-app-01.corp.example
+  [ PASS ] DNS                    198.51.100.20
+  [ PASS ] Ping                   18 ms average
+  [ PASS ] TCP 443                open
+  [ WARN ] Uptime                 31h 44m exceeds expected 24 hours
+  [ PASS ] CPU                    41% load
+  [ PASS ] Memory                 34.7% free
+  [ PASS ] Proc DemoApp.exe       2 running (PID 4104, 6220), 612 MB memory
+  RESULT: WARN
+
+Demo Database Server [SERVER]
+  Target : demo-db-01.corp.example
+  [ PASS ] DNS                    203.0.113.30
+  [ PASS ] Ping                   7 ms average
+  [ PASS ] TCP 1433               open
+  [ PASS ] Uptime                 3h 05m; last boot 2026-09-12 06:25:00
+  [ PASS ] CPU                    22% load
+  [ PASS ] Memory                 48.3% free
+  [ FAIL ] Disk C:                3.8% free (4.6 GB of 120 GB)
+  [ FAIL ] Svc MSSQLSERVER        Stopped (start mode: Auto)
+  RESULT: FAIL
+
+Demo Customer Portal [HTTP]
+  Target : https://portal.example/health
+  [ PASS ] DNS                    192.0.2.40
+  [ PASS ] TLS expiry             portal.example; expires 2027-06-30 (290 days)
+  [ PASS ] HTTP status            got 200, expected 200 (184 ms)
+  [ PASS ] Response time          184 ms (limit 1000 ms)
+  [ INFO ] Body size              842 characters
+  [ PASS ] Content match          found 'healthy'
+  RESULT: PASS
+
+Demo Orders API [HTTP]
+  Target : https://api.example/status
+  [ PASS ] DNS                    198.51.100.40
+  [ PASS ] TLS expiry             api.example; expires 2027-05-15 (244 days)
+  [ PASS ] HTTP status            got 200, expected 200 or 204 (1450 ms)
+  [ WARN ] Response time          1450 ms (limit 1000 ms)
+  [ INFO ] Body size              126 characters
+  RESULT: WARN
+
+Demo Billing Dashboard [HTTP]
+  Target : https://billing.example/health
+  [ PASS ] DNS                    203.0.113.40
+  [ PASS ] TLS expiry             billing.example; expires 2027-04-18 (217 days)
+  [ FAIL ] HTTP status            got 503, expected 200 (391 ms)
+  [ INFO ] Body size              78 characters
+  RESULT: FAIL
+
+SUMMARY
+  PASS    Demo Web Server            server  80=open; 443=open  uptime 2h 18m
+  WARN    Demo Application Server    server  WARN:Uptime
+  FAIL    Demo Database Server       server  FAIL:Disk C:; FAIL:Svc MSSQLSERVER
+  PASS    Demo Customer Portal       http    HTTP 200 in 184 ms
+  WARN    Demo Orders API            http    WARN:Response time
+  FAIL    Demo Billing Dashboard     http    FAIL:HTTP status
+
+  Passed   : 2
+  Warnings : 2
+  Failed   : 2
+  Elapsed  : 18.4 seconds
+  ATTENTION REQUIRED: review the FAIL lines above.
+
+Log : ServerPostflight-Demo.log
+CSV : ServerPostflight-Demo.csv
+HTML: ServerPostflight-Demo.html

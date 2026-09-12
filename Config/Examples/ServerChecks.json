@@ -6,45 +6,30 @@
   ],
   "ServerChecks": [
     {
-      "_comment": "Minimal check: DNS, ping, and the DefaultTcpPort from Settings.json.",
-      "Name": "Minimal server check",
-      "Host": "APP-SERVER-01"
+      "_comment": "Synthetic web-server example matching the files in Logs and Reports.",
+      "Name": "Demo Web Server",
+      "Host": "demo-web-01.corp.example",
+      "Port": [80, 443],
+      "Info": "all",
+      "Services": "W3SVC"
     },
     {
-      "_comment": [
-        "Single-value form for Port, Info, Services, and Processes.",
-        "User is omitted, so requested remote checks use the operator's current Windows account."
-      ],
-      "Name": "Single-value server check",
-      "Host": "APP-SERVER-02",
-      "Port": 3389,
-      "Info": "uptime",
-      "Services": "W3SVC",
-      "Processes": "MyApp.exe"
+      "_comment": "Synthetic application-server example matching the files in Logs and Reports.",
+      "Name": "Demo Application Server",
+      "Host": "demo-app-01.corp.example",
+      "Port": 443,
+      "Info": "all",
+      "Processes": "DemoApp.exe"
     },
     {
-      "_comment": "Multiple-value form with an explicit account. Its password is requested once per run and kept only in memory.",
-      "_comment_Info": "Info accepts uptime, os, memory, cpu, disk, or all.",
-      "Name": "Full server check",
-      "Host": "APP-SERVER-03",
-      "Port": [3389, 443],
-      "User": "DISTRICT\\svc_monitor",
-      "Info": ["uptime", "os", "memory", "cpu", "disk"],
-      "Services": ["W3SVC", "MSSQLSERVER"],
-      "Processes": ["MyApp.exe", "Worker"]
-    },
-    {
-      "_comment": "The all shortcut requests uptime, OS, memory, CPU, and disk information.",
-      "Name": "All server information",
-      "Host": "APP-SERVER-04",
-      "Info": "all"
-    },
-    {
-      "_comment": "Use localhost or a single period to check the computer running Server Postflight without a credential prompt.",
-      "Name": "Local computer",
-      "Host": ".",
-      "Port": [135, 445],
-      "Info": "all"
+      "_comment": "Synthetic database-server example using a fictional account and reserved hostname.",
+      "Name": "Demo Database Server",
+      "Host": "demo-db-01.corp.example",
+      "Port": [1433, 3389],
+      "User": "EXAMPLE\\svc_postflight_demo",
+      "Info": "all",
+      "Services": "MSSQLSERVER",
+      "Processes": "DemoDatabase.exe"
     }
   ]
 }

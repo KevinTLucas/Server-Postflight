@@ -106,6 +106,16 @@ finally {
 }
 if ((Test-TcpPort '127.0.0.1' $port).Open) { throw 'The TCP check reported a closed loopback port as open.' }
 
+$probeStream = New-Object IO.MemoryStream
+try {
+    $sslStream = New-CertificateProbeStream $probeStream
+    if ($sslStream -isnot [Net.Security.SslStream]) { throw 'The certificate probe did not create an SSL stream.' }
+}
+finally {
+    if ($sslStream) { $sslStream.Dispose() }
+    $probeStream.Dispose()
+}
+
 $portProbe = New-Object Net.Sockets.TcpListener([Net.IPAddress]::Loopback, 0)
 $portProbe.Start()
 $httpPort = ([Net.IPEndPoint]$portProbe.LocalEndpoint).Port
