@@ -553,18 +553,3 @@ was moved away from the other files, restore the complete folder structure.
 | `Demo` | Sanitized example logs, reports, and screenshots; contains no runnable code. |
 | `Logs` | Created automatically for text logs and CSV data. |
 | `Reports` | Created automatically for timestamped HTML reports. |
-| `Test-ServerPostflight.ps1` | Offline developer smoke test. Operators do not run it. |
-
-## Developer verification
-
-After changing the implementation or configuration schema, run:
-
-```powershell
-powershell.exe -NoProfile -ExecutionPolicy Bypass -File .\Test-ServerPostflight.ps1
-```
-
-The smoke test validates PowerShell syntax, all live and example JSON files,
-configuration comments, strict property checking, authentication-error handling,
-TCP behavior, an actual loopback HTTP redirect, status priority, HTML generation,
-and launcher wiring. It uses the local computer only and never contacts targets
-from Config.
