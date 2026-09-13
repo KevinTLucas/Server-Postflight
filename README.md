@@ -100,11 +100,9 @@ Config folder, and configuration files depend on their relative locations.
 
 ## Quick start
 
-If this is a fresh copy from GitHub, first copy
-`Config\Examples\ServerChecks.json` to `Config\ServerChecks.json` and copy
-`Config\Examples\WebChecks.json` to `Config\WebChecks.json`. Remove the sample
-entries and add the real targets. These two live files are deliberately excluded
-from Git so internal server names and addresses are not published accidentally.
+The repository and release ZIP include empty `Config\ServerChecks.json` and
+`Config\WebChecks.json` starter files. Add your targets to them and use the
+matching files in `Config\Examples` as complete references.
 
 1. Open the **Config** folder.
 2. Open **ServerChecks.json** to review Windows servers.
@@ -547,8 +545,8 @@ was moved away from the other files, restore the complete folder structure.
 | `Run Server Postflight.cmd` | Operator launcher; this is the file users double-click. |
 | `ServerPostflight.ps1` | Read-only implementation used by the launcher. Operators do not edit it. |
 | `Config\Settings.json` | Live global settings. |
-| `Config\ServerChecks.json` | Local-only Windows server checks; excluded from Git. |
-| `Config\WebChecks.json` | Local-only website and HTTP endpoint checks; excluded from Git. |
+| `Config\ServerChecks.json` | Empty starter file for Windows server checks. |
+| `Config\WebChecks.json` | Empty starter file for website and HTTP endpoint checks. |
 | `Config\Examples` | Complete reference configurations that are not run. |
 | `Demo` | Sanitized example logs, reports, and screenshots; contains no runnable code. |
 | `Logs` | Created automatically for text logs and CSV data. |
