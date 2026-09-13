@@ -1,68 +1,273 @@
 # Server Postflight
 
-Server Postflight is a read-only, post-maintenance verification tool for Windows
-servers, websites, and HTTP application endpoints. It is designed for the person
-who performs the final check after servers have been patched and restarted.
+Server Postflight is a read-only Windows health-check application for Windows
+servers, websites, and HTTP APIs. Define targets in JSON, double-click the
+launcher, and review color-coded results in the console, a text log, CSV data,
+and a self-contained HTML report.
 
-The operator does not need to know PowerShell or use a command line. Configure the
-checks in plain JSON files, double-click **Run Server Postflight.cmd**, enter a
-password only if prompted, and review the color-coded results. Every run also
-creates a timestamped text log, CSV file, and formatted HTML report.
+- **Windows servers:** DNS, ping, TCP ports, uptime, operating system, CPU,
+  memory, fixed disks, services, and processes.
+- **Web endpoints:** DNS, TLS certificate expiration, HTTP status, response
+  time, redirects, response size, and optional content matching.
+- **Simple operation:** no installer, command-line arguments, or third-party
+  PowerShell modules are required.
+- **Read-only checks:** the application does not restart services, stop
+  processes, change settings, or modify a target.
 
-## What Server Postflight answers
+[Download the latest release](https://github.com/KevinTLucas/Server-Postflight/releases/latest)
 
-After a maintenance window, Server Postflight helps answer these questions:
+## Quick start
 
-- Can each server name be resolved on the network?
-- Is the server reachable, or is ping simply blocked?
-- Are the required TCP ports accepting connections?
-- Did the server reboot recently?
-- Does its CPU, memory, and disk usage look reasonable?
-- Are the expected Windows services running?
-- Are the expected application processes running?
-- Do the configured websites and application endpoints respond correctly?
-- Are responses fast enough and, when requested, do they contain expected text?
-- Are HTTPS certificates approaching expiration?
+### Requirements
 
-Server Postflight combines those answers into one PASS, WARN, or FAIL result for
-each configured server or web check.
+- Windows PowerShell 5.1.
+- Network access to the targets you configure.
+- CIM/WMI permissions when requesting remote Windows information, services,
+  or processes.
 
-## Demo
+### Setup and run
 
-The demo area contains sanitized example output. The downloadable log, CSV, and
-HTML report use synthetic data only: hostnames use the reserved `.example`
-namespace, IP addresses use RFC 5737 documentation ranges, and account and
-computer names are fictional.
+1. Download and extract the latest `Server-Postflight.zip` release.
+2. Keep the extracted folder together; its launcher, script, and `Config`
+   folder use relative paths.
+3. Add at least one target to `Config\ServerChecks.json` or
+   `Config\WebChecks.json`.
+4. Use the complete files in `Config\Examples` as references.
+5. Double-click **Run Server Postflight.cmd**.
+6. Enter a password if prompted, or press Enter to use the current Windows
+   account.
+7. Review the `SUMMARY`, then open the newest report in `Reports`.
 
-The matching [HTML report](Demo/Reports/ServerPostflight-Demo.html),
-[CSV data](Demo/Logs/ServerPostflight-Demo.csv), and
-[text log](Demo/Logs/ServerPostflight-Demo.log) are generated from the exact same six
-targets in `Config\Examples`. The screenshots show the credential prompts,
-console checks, summary, log, and HTML report produced by the application.
+Run the CMD launcher rather than opening `ServerPostflight.ps1` directly. The
+launcher starts PowerShell correctly, reports whether checks failed, and keeps
+the window open so you can read the result.
 
-### Example console output
+## Configure
 
-#### Credential prompts
+Server Postflight reads three JSON files from `Config`:
+
+| File | Purpose |
+| --- | --- |
+| `ServerChecks.json` | Windows server targets and their connectivity, system, service, and process checks. |
+| `WebChecks.json` | Website and HTTP API targets. |
+| `Settings.json` | Output locations, timeouts, defaults, thresholds, and optional behavior. |
+
+The starter server and web files contain empty lists. At least one check must
+exist across the two files before the application can run. Files in
+`Config\Examples` are references only and are not loaded.
+
+### JSON basics
+
+- Property names and text values use double quotes.
+- Numbers and `true` or `false` do not use quotes.
+- Separate objects and list items with commas; do not add a comma after the
+  final item.
+- Use square brackets for lists, such as `[80, 443]`.
+- Escape the backslash in Windows account names, such as
+  `"EXAMPLE\\healthcheck"`.
+- Properties named `_comment` or beginning with `_comment_` are ignored and
+  can be used for notes. Other unknown properties cause a configuration error.
+
+The application validates all configuration files before contacting any
+target. An error identifies the file, entry, and property that needs attention.
+
+### Windows server checks
+
+Add objects to the `ServerChecks` list:
+
+```json
+{
+  "ServerChecks": [
+    {
+      "Name": "Application Server",
+      "Host": "app-01.example",
+      "Port": [3389, 443],
+      "User": "EXAMPLE\\healthcheck",
+      "Info": "all",
+      "Services": ["W3SVC"],
+      "Processes": ["ExampleApp.exe"]
+    }
+  ]
+}
+```
+
+| Property | Required | Value | Purpose |
+| --- | ---: | --- | --- |
+| `Name` | Yes | Text | Friendly name shown in the console and reports. |
+| `Host` | Yes | Text | Hostname, fully qualified domain name, or IP address. Use `.`, `localhost`, `127.0.0.1`, or `::1` for the local computer. |
+| `Port` | No | Number or list | TCP ports that must accept a connection. The default is `DefaultTcpPort`. |
+| `User` | No | Text | Windows account used for remote CIM/WMI checks. The current account is used when omitted. |
+| `Info` | No | Text or list | One or more of `uptime`, `os`, `memory`, `cpu`, `disk`, or `all`. |
+| `Services` | No | Text or list | Service names or exact display names that must be running. |
+| `Processes` | No | Text or list | Executable names that must be running; `.exe` is optional. |
+
+Every server target receives DNS, ping, and TCP checks. If `Port` is omitted,
+the application checks `DefaultTcpPort` from `Settings.json`.
+
+Remote Windows checks run only when `Info`, `Services`, or `Processes` is
+configured. The application first tries a CIM session over WinRM and uses DCOM
+as a compatibility fallback for transport failures. An explicitly rejected
+credential is not retried through DCOM or on later targets.
+
+#### Information values
+
+| Value | Reported information |
+| --- | --- |
+| `uptime` | Uptime and last boot time. Can warn when uptime exceeds `ExpectedRebootWithinHours`. |
+| `os` | Windows name and build number. |
+| `memory` | Free memory amount and percentage. |
+| `cpu` | Average processor load. |
+| `disk` | Free space for every fixed disk. |
+| `all` | Enables all five information checks. |
+
+Memory, CPU, and disk results use the thresholds in `Settings.json`. A missing
+or stopped required service fails its check. A missing process also fails; a
+running process result includes its instance count, up to five process IDs, and
+total working memory.
+
+### Web checks
+
+Add objects to the `WebChecks` list:
+
+```json
+{
+  "WebChecks": [
+    {
+      "Name": "Application Health",
+      "Url": "https://status.example/health",
+      "ExpectedCode": 200,
+      "MaxResponseMilliseconds": 2500,
+      "MustContain": "healthy"
+    }
+  ]
+}
+```
+
+| Property | Required | Value | Purpose |
+| --- | ---: | --- | --- |
+| `Name` | Yes | Text | Friendly name shown in the console and reports. |
+| `Url` | Yes | Complete URL | `http://` or `https://` URL requested with HTTP GET. Embedded credentials are rejected. |
+| `ExpectedCode` | No | Number or list | Accepted HTTP status code or codes. The default is `200`. |
+| `MaxResponseMilliseconds` | No | Whole number | Per-target response-time warning limit. Uses the global default when omitted; `0` disables the timing warning. |
+| `MustContain` | No | Text | Case-insensitive text required in a successful 2xx response body. |
+
+Successful requests follow up to 10 redirects. If a 3xx response is explicitly
+expected, the application records that response and its location without
+following it. `MustContain` can be used only when every expected status is in
+the 200-299 range.
+
+HTTPS targets receive a separate certificate-expiration check. The normal web
+request still uses Windows certificate trust validation unless
+`SkipCertificateValidation` is enabled.
+
+### Settings
+
+All operational properties in `Config\Settings.json` are required. The
+included defaults work for a typical first run; `_comment` entries are optional.
+
+| Setting | Default | Purpose |
+| --- | ---: | --- |
+| `LogFolder` | `Logs` | Text log and CSV destination. Relative paths start in the application folder. |
+| `ReportFolder` | `Reports` | HTML report destination. Relative paths start in the application folder. |
+| `HttpTimeoutSeconds` | `15` | Maximum time for an HTTP request. |
+| `TcpTimeoutSeconds` | `3` | Maximum time for a TCP connection or TLS handshake. |
+| `RemoteTimeoutSeconds` | `20` | Maximum time for each remote CIM/WMI operation. |
+| `PingCount` | `2` | ICMP requests sent to each server. |
+| `DefaultTcpPort` | `3389` | Port used when a server does not define `Port`. |
+| `DefaultMaxResponseMilliseconds` | `3000` | Default web response-time warning limit; `0` disables it. |
+| `ExpectedRebootWithinHours` | `0` | Warns when requested uptime exceeds this value; `0` disables the warning. |
+| `CertificateWarningDays` | `30` | Warns when a certificate expires within this many days. |
+| `CpuWarningPercent` | `90` | Warns when CPU load reaches this percentage. |
+| `MemoryWarningPercent` | `10` | Warns when free memory falls below this percentage. |
+| `DiskWarningPercent` | `15` | Warns when free disk space falls below this percentage. |
+| `DiskFailurePercent` | `5` | Fails when free disk space falls below this percentage. Cannot exceed `DiskWarningPercent`. |
+| `SkipCertificateValidation` | `false` | Allows untrusted HTTPS certificates for the current run. Keep disabled when possible. |
+| `SkipRemoteChecks` | `false` | Skips Windows information, service, and process checks while retaining connectivity and web checks. |
+| `UseCredentialDialog` | `false` | Uses a graphical credential dialog instead of hidden console input. |
+
+## Run behavior
+
+The application follows this sequence:
+
+1. Read and validate all three configuration files.
+2. Create the configured output folders and timestamped filenames.
+3. Request each distinct configured Windows account password once.
+4. Run each target and display its checks as they complete.
+5. Print a summary and create the text log, CSV data, and HTML report.
+
+### Credentials
+
+Credentials are needed only for remote Windows information, service, or process
+checks. DNS, ping, TCP, and web checks do not use them.
+
+- If `User` is omitted, Windows tries the account running Server Postflight.
+- At a console password prompt, press Enter without typing a password to use
+  the current account.
+- A password is kept only in a PowerShell credential object for the current
+  run. It is never written to configuration, logs, CSV data, or HTML reports.
+- One password prompt is shown for each distinct `User` value and reused only
+  in memory during that run.
+
+### Result statuses
+
+| Status | Meaning |
+| --- | --- |
+| `PASS` | The check completed successfully. |
+| `WARN` | The target responded, but a threshold or condition needs review. |
+| `FAIL` | A required check failed or could not be completed. |
+| `INFO` | Context that does not affect the target result. |
+| `SKIP` | The check was disabled or not configured. |
+
+Each target receives its worst check status. For example, a stopped required
+service makes the server result `FAIL` even if its connectivity checks pass. A
+missing ping response is `WARN`, because many systems intentionally block ICMP.
+
+The launcher returns a nonzero exit code for a failed target, a configuration
+error, or a fatal application error. Warnings do not produce a failing exit
+code.
+
+## Outputs
+
+The output folders are created automatically. Files from one run share the same
+timestamp.
+
+| Output | Default location | Contents |
+| --- | --- | --- |
+| Console | Current window | Live color-coded checks and the final summary. |
+| Text log | `Logs\ServerPostflight_<timestamp>.log` | Plain-text copy of the console results and error details. |
+| CSV | `Logs\ServerPostflight_<timestamp>.csv` | One row per target for filtering or analysis. |
+| HTML | `Reports\ServerPostflightReport_<timestamp>.html` | Self-contained summary and detailed check cards for a browser. |
+
+The HTML report uses the same results collected during the run; opening it does
+not repeat any checks. URL query strings and response bodies are not written to
+the outputs. Logs and reports can still contain hostnames, IP addresses, URL
+paths, usernames, health information, and error messages, so handle them as
+operational data.
+
+### Demo files
+
+The repository includes a sanitized, synthetic set of matching example outputs:
+
+- [HTML report](Demo/Reports/ServerPostflight-Demo.html)
+- [CSV data](Demo/Logs/ServerPostflight-Demo.csv)
+- [Text log](Demo/Logs/ServerPostflight-Demo.log)
+
+The demo hostnames use `.example`, its IP addresses use RFC 5737 documentation
+ranges, and its account and computer names are fictional.
+
+#### Console
 
 ![Initial credential prompt](Demo/Screenshots/credential-prompt.png)
 
 ![Credential supplied and next prompt](Demo/Screenshots/credential-supplied.png)
 
-#### Server checks
-
 ![Server service-check results](Demo/Screenshots/server-service-check-results.png)
 
 ![Server process-check results](Demo/Screenshots/server-process-check-results.png)
 
-#### Web checks
-
 ![HTTP web-check results](Demo/Screenshots/web-check-results.png)
 
-#### Summary
-
 ![Postflight summary](Demo/Screenshots/postflight-summary.png)
-
-### Example generated files
 
 #### Text log
 
@@ -74,480 +279,35 @@ console checks, summary, log, and HTML report produced by the application.
 
 ![HTML report target results](Demo/Screenshots/html-report-target-results.png)
 
-## What it does not do
-
-Server Postflight does not patch, restart, repair, or reconfigure anything. It
-does not restart stopped services, terminate processes, change certificates, or
-modify remote systems. It reports what it finds so a person can decide what to do.
-
-It is a point-in-time verification tool, not a continuously running monitoring
-service. Run it whenever a fresh post-maintenance result is needed.
-
-## Before you begin
-
-The computer running Server Postflight needs:
-
-- Windows PowerShell 5.1, which is included with supported Windows versions.
-- Network access to the configured servers and websites.
-- A corporate network or VPN connection when the targets are internal.
-- Permission to query remote Windows information when those checks are enabled.
-
-If the computer is not connected to the required network or VPN, internal checks
-will fail even when the servers themselves are healthy.
-
-Keep the entire Server Postflight folder together. The launcher, PowerShell file,
-Config folder, and configuration files depend on their relative locations.
-
-## Quick start
-
-The repository and release ZIP include empty `Config\ServerChecks.json` and
-`Config\WebChecks.json` starter files. Add your targets to them and use the
-matching files in `Config\Examples` as complete references.
-
-1. Open the **Config** folder.
-2. Open **ServerChecks.json** to review Windows servers.
-3. Open **WebChecks.json** to review websites and application endpoints.
-4. Normally leave **Settings.json** unchanged unless a timeout or warning
-   threshold needs adjustment.
-5. Save and close the JSON files.
-6. Connect to the required corporate network or VPN.
-7. Double-click **Run Server Postflight.cmd**.
-8. Enter requested passwords. Password entry is hidden.
-9. Wait for the SUMMARY section and the `Finished` message.
-10. Press any key to close the window after reviewing the result.
-11. Open the newest file in **Reports** for the formatted report.
-
-Do not double-click `ServerPostflight.ps1` directly. The CMD launcher starts it
-correctly, preserves the final result, and keeps the window open.
-
-## What happens during a run
-
-Server Postflight follows the same sequence every time:
-
-1. It reads all three live JSON files in Config.
-2. It validates every setting and check. A configuration error stops the run
-   before a password prompt or network connection occurs.
-3. It requests each distinct configured account password once. A password can be
-   skipped to try the current Windows account instead.
-4. It runs each server and web check and displays results as they complete.
-5. It prints a summary showing every target and its overall result.
-6. It saves the text log, CSV data, and HTML report using the same timestamp.
-
-The launcher returns a failure result when any target fails. Warnings do not make
-the overall run fail, but they should still be reviewed.
-
-## Understanding the on-screen results
-
-Each individual line begins with a status:
-
-| Status | Meaning | What the operator should do |
-|---|---|---|
-| PASS | The check succeeded. | No action is normally needed. |
-| WARN | The target responded, but something deserves attention. | Read the detail and decide whether it is expected. |
-| FAIL | The check failed or could not be verified. | Investigate before declaring maintenance complete. |
-| INFO | Additional context that does not affect the result. | Use it to understand the target. |
-| SKIP | A check was disabled or not configured. | Confirm that skipping it was intentional. |
-
-A server or website receives its worst status. For example, a server with passing
-DNS, ping, and uptime checks but a stopped required service receives FAIL.
-
-Ping is the main exception: no ping response produces WARN rather than FAIL because
-many healthy servers intentionally block ICMP. A failed required TCP port, remote
-query, service, process, or HTTP result produces FAIL.
-
-## Output files and reports
-
-Server Postflight creates two output folders automatically.
-
-### Logs
-
-Each run creates two files with matching timestamps:
-
-```text
-Logs\ServerPostflight_2026-09-12_093015_123.log
-Logs\ServerPostflight_2026-09-12_093015_123.csv
-```
-
-The `.log` file is a permanent plain-text copy of the console output. It is the
-best file for troubleshooting because it contains every check and error message.
-
-The `.csv` file contains one row per server or web check. It can be opened in
-Excel for sorting, filtering, or combining results from several maintenance runs.
-
-### Reports
-
-Each run also creates a formatted report:
-
-```text
-Reports\ServerPostflightReport_2026-09-12_093015_123.html
-```
-
-Double-click the HTML file to open it in a browser. The report is self-contained
-and does not require internet access. It contains:
-
-- The run date and exact start time.
-- The operator and computer that ran the check.
-- The total elapsed time.
-- An overall PASS, WARN, or FAIL banner.
-- Counts of passed, warning, and failed targets.
-- A compact summary table.
-- A detailed card for every server and web check.
-- The status, name, and explanation of every individual check.
-
-The HTML report uses the same results as the console; it does not rerun or reinterpret
-the checks. It can be saved with maintenance records or attached to a ticket.
-
-## Configuration folder
-
-Only the three JSON files directly inside Config are used during a normal run:
-
-| File | Purpose | Who normally edits it |
-|---|---|---|
-| `Config\ServerChecks.json` | Windows servers, ports, system information, services, and processes. | The person maintaining the server list. |
-| `Config\WebChecks.json` | Websites and HTTP application endpoints. | The person maintaining application checks. |
-| `Config\Settings.json` | Output folders, timeouts, defaults, thresholds, and optional behavior. | Usually the tool owner or administrator. |
-
-The files in `Config\Examples` demonstrate every supported option. They are never
-loaded during a normal run, so changing an example does not change live checks.
-
-## JSON basics
-
-JSON is structured text. These rules prevent most editing errors:
-
-- Property names and text values use double quotes: `"Name": "Application VM"`.
-- A comma follows an item when another item comes after it.
-- Do not put a comma after the final item in an object or list.
-- Square brackets contain a list: `[3389, 443]`.
-- Curly braces contain one server, web check, or group of settings.
-- Windows account names need two backslashes: `"EXAMPLE\\demo_user"`.
-- Boolean settings are `true` or `false` without quotes.
-- Numbers do not use quotes.
-
-Server Postflight reports the name and location of invalid JSON or an invalid
-property. Fix the named file and run the launcher again.
-
-### Notes inside JSON
-
-Standard JSON does not support comments. Server Postflight therefore treats
-`_comment` and any property beginning with `_comment_` as an operator note:
-
-```json
-{
-  "_comment": "This text is for people and does not affect the check.",
-  "_comment_ports": [
-    "3389 is Remote Desktop.",
-    "443 is the application HTTPS port."
-  ],
-  "Name": "Application VM",
-  "Host": "APP-SERVER-01",
-  "Port": [3389, 443]
-}
-```
-
-Comment properties can contain one string or a list of strings and may appear at
-the top of a configuration file or inside an individual check. Server Postflight
-reads but ignores their values. Other unknown properties are rejected so a typo
-such as `"ExpectedCodes"` cannot silently disable a real check.
-
-## Configuring Windows server checks
-
-`Config\ServerChecks.json` contains a `ServerChecks` list:
-
-```json
-{
-  "_comment": "Windows servers checked after maintenance.",
-  "ServerChecks": [
-    {
-      "Name": "Application VM",
-      "Host": "APP-SERVER-01",
-      "Port": [3389, 443],
-      "User": "EXAMPLE\\svc_postflight_demo",
-      "Info": ["uptime", "os", "memory", "cpu", "disk"],
-      "Services": ["W3SVC"],
-      "Processes": ["MyApplication.exe"]
-    }
-  ]
-}
-```
-
-The outer `ServerChecks` list must remain, even if it is temporarily empty.
-
-### Server-check properties
-
-| Property | Required | Allowed form | Meaning |
-|---|---:|---|---|
-| `Name` | Yes | Text | Friendly label displayed in the console and reports. It does not have to match the Windows hostname. |
-| `Host` | Yes | Text | Hostname, fully qualified domain name, or IP address. `localhost` or `.` checks the computer running Server Postflight. |
-| `Port` | No | Number or list of numbers | TCP ports that must accept connections. When omitted, `DefaultTcpPort` from Settings.json is used. |
-| `User` | No | Text | Windows account used for remote information, service, and process checks. When omitted, the current Windows account is used. |
-| `Info` | No | Text or list | System information to request: `uptime`, `os`, `memory`, `cpu`, `disk`, or `all`. |
-| `Services` | No | Text or list | Windows service names or exact display names that must be running. |
-| `Processes` | No | Text or list | Executable names that must be running. The `.exe` suffix is optional. |
-| `_comment` or `_comment_*` | No | Text or list | Human-readable notes ignored by the program. |
-
-`Port`, `Info`, `Services`, and `Processes` accept either one value or a list:
-
-```json
-"Port": 3389
-```
-
-```json
-"Port": [3389, 443]
-```
-
-### Server checks performed
-
-For every configured server, Server Postflight can perform:
-
-1. **DNS:** resolves the configured Host to one or more IP addresses. Failure is
-   FAIL because the remaining hostname-based checks cannot be trusted.
-2. **Ping (ICMP):** sends the configured number of ping requests. No response is
-   WARN because firewalls commonly block ping on healthy systems.
-3. **TCP ports:** opens a connection to every configured port. Each port must
-   accept a connection within `TcpTimeoutSeconds` or it receives FAIL.
-4. **Remote Windows checks:** when Info, Services, or Processes is configured,
-   Server Postflight creates a read-only CIM session using WinRM, with DCOM as a
-   compatibility fallback for transport problems.
-
-DNS, ping, and TCP checks do not require a username or password. Credentials are
-used only when remote Windows information is requested.
-
-### Information choices
-
-| Info value | Result |
-|---|---|
-| `uptime` | Time since the last boot and the exact last-boot timestamp. When `ExpectedRebootWithinHours` is enabled, an older boot receives WARN. |
-| `os` | Windows edition and build number. This is informational and does not affect status. |
-| `memory` | Free memory amount and percentage. Low free memory receives WARN. Missing or invalid data receives FAIL. |
-| `cpu` | Average processor load. High load receives WARN. Missing data receives FAIL. |
-| `disk` | Free space for every fixed disk. Low space receives WARN or FAIL according to Settings.json. |
-| `all` | Shortcut for uptime, OS, memory, CPU, and disk. |
-
-### Services and processes
-
-For services, use the Windows service **Name** or its exact **DisplayName**, not
-the service executable filename. A missing or stopped configured service receives
-FAIL. The output also shows its state and startup mode.
-
-For processes, enter the executable name, such as `MyApplication.exe` or
-`MyApplication`. A missing configured process receives FAIL. When found, the
-output shows how many instances are running, several process IDs, and their total
-working memory.
-
-## Configuring web checks
-
-`Config\WebChecks.json` contains a `WebChecks` list:
-
-```json
-{
-  "_comment": "Application endpoints checked after maintenance.",
-  "WebChecks": [
-    {
-      "Name": "Application health page",
-      "Url": "https://portal.example/health",
-      "ExpectedCode": 200,
-      "MaxResponseMilliseconds": 2500,
-      "MustContain": "healthy"
-    }
-  ]
-}
-```
-
-The outer `WebChecks` list must remain, even if it is temporarily empty. At least
-one entry must exist between ServerChecks.json and WebChecks.json.
-
-### Web-check properties
-
-| Property | Required | Allowed form | Meaning |
-|---|---:|---|---|
-| `Name` | Yes | Text | Friendly label displayed in the console and reports. |
-| `Url` | Yes | Complete HTTP or HTTPS URL | Address requested with HTTP GET. A username or password may not be embedded in the URL. |
-| `ExpectedCode` | No | Number or list of numbers | Acceptable HTTP response code or codes. Defaults to 200. |
-| `MaxResponseMilliseconds` | No | Zero or positive whole number | Per-check response-time warning limit. When omitted, the setting default is used. Zero disables the response-time warning for this check. |
-| `MustContain` | No | Text | Case-insensitive text that must appear in a successful 2xx response body. |
-| `_comment` or `_comment_*` | No | Text or list | Human-readable notes ignored by the program. |
-
-Example with more than one acceptable response:
-
-```json
-"ExpectedCode": [200, 204]
-```
-
-Normal successful web checks follow redirects. When a 3xx response such as 302
-is explicitly expected, Server Postflight inspects that redirect without following
-it. `MustContain` may only be used when every expected code is in the 200–299 range.
-
-For HTTPS URLs, Server Postflight separately reports certificate expiration. The
-normal web request still performs Windows certificate trust validation unless
-`SkipCertificateValidation` has deliberately been enabled.
-
-Response bodies are not written to logs or reports. Server Postflight records only
-their size and whether the configured `MustContain` text was found.
-
-## Configuring settings
-
-All properties in `Config\Settings.json` are required. The supplied defaults are
-appropriate for ordinary use; make one change at a time and rerun the tool.
-
-| Setting | Supplied value | Meaning |
-|---|---:|---|
-| `LogFolder` | `Logs` | Text-log and CSV destination. A relative path starts beside ServerPostflight.ps1. |
-| `ReportFolder` | `Reports` | HTML-report destination. A relative path starts beside ServerPostflight.ps1. |
-| `HttpTimeoutSeconds` | `15` | Maximum time allowed for one web request. |
-| `TcpTimeoutSeconds` | `3` | Maximum time allowed for a TCP connection or TLS handshake. |
-| `RemoteTimeoutSeconds` | `20` | Maximum time allowed for each remote CIM/WMI operation. |
-| `PingCount` | `2` | Number of ping requests sent to each server. |
-| `DefaultTcpPort` | `3389` | Port checked when a server entry does not provide Port. |
-| `DefaultMaxResponseMilliseconds` | `3000` | Default web-response warning limit. Zero disables this warning globally unless a web check overrides it. |
-| `ExpectedRebootWithinHours` | `0` | Warns when requested uptime is older than this many hours. Zero disables reboot enforcement. For a Sunday maintenance window, a value such as 24 or 36 is typical. |
-| `CertificateWarningDays` | `30` | Warns when an HTTPS certificate expires within this many days. |
-| `CpuWarningPercent` | `90` | Warns when CPU load is at or above this percentage. |
-| `MemoryWarningPercent` | `10` | Warns when free memory is below this percentage. |
-| `DiskWarningPercent` | `15` | Warns when free disk space is below this percentage. |
-| `DiskFailurePercent` | `5` | Fails when free disk space is below this percentage. It cannot exceed DiskWarningPercent. |
-| `SkipCertificateValidation` | `false` | When true, permits untrusted or self-signed HTTPS certificates. Keep false unless the endpoint and reason are known. Expiration is still reported separately. |
-| `SkipRemoteChecks` | `false` | When true, skips Windows information, services, and processes while retaining DNS, ping, TCP, and web checks. |
-| `UseCredentialDialog` | `false` | When true, uses a graphical credential prompt. When false, uses hidden password entry in the console. Neither choice saves the password. |
-
-Boolean values must be written without quotation marks:
-
-```json
-"SkipRemoteChecks": false
-```
-
-## Credentials and safe use
-
-Server Postflight is intentionally read-only.
-
-- Remote Windows queries request information through Microsoft CIM/WMI.
-- Web checks use HTTP GET and never submit configuration changes.
-- TCP checks only establish and close a connection.
-- No service, process, server, or website is changed.
-- The complete configuration is validated before any target is contacted.
-
-Usernames may be stored in ServerChecks.json, but passwords are never stored in a
-configuration file, log, CSV, HTML report, or application-created credential file.
-A password is held only in a PowerShell credential object in memory for the current
-run and disappears when the process exits.
-
-When several servers use the same User value, the password is requested once and
-reused only in memory during that run. If a remote system rejects an explicit
-credential, Server Postflight does not retry it through another protocol or against
-later targets, reducing the risk of repeated failures and account lockout.
-
-If User is omitted, Windows attempts the remote query using the account running
-Server Postflight. Pressing Enter at an empty console password prompt also skips
-the explicit credential and tries the current Windows account.
-
-Logs and reports can contain hostnames, IP addresses, URL paths, usernames, machine
-health information, and error messages. Treat them as internal operational records.
-URL query strings and response bodies are deliberately excluded.
-
-Keep `SkipCertificateValidation` set to false whenever possible. Setting it to true
-affects only the current Server Postflight process and is restored when the run
-finishes, but it removes an important HTTPS identity check during that run.
-
-## Common configuration tasks
-
-### Add a server
-
-Copy one complete object inside the `ServerChecks` list, paste it after the previous
-object, place a comma between the two objects, then change Name and Host. Add only
-the optional Port, User, Info, Services, and Processes properties you need.
-
-### Add a website or API endpoint
-
-Copy one complete object inside the `WebChecks` list, paste it after the previous
-object, add the separating comma, then change Name and Url. Start with an
-ExpectedCode of 200 unless the application owner specifies another response.
-
-### Remove a check
-
-Delete its entire object from the opening `{` through the matching `}`. Then ensure
-the objects before and after it are separated by exactly one comma.
-
-### Temporarily run only connectivity checks
-
-Set `SkipRemoteChecks` to true in Settings.json. This leaves DNS, ping, TCP, and all
-web checks enabled but skips remote Windows information, services, and processes.
-Set it back to false after troubleshooting.
-
-### Require evidence of a recent reboot
-
-Set `ExpectedRebootWithinHours` to a nonzero value such as 24 or 36 and make sure
-the server's Info includes `uptime` or `all`. A server with an older boot time then
-receives WARN.
-
 ## Troubleshooting
 
-### Configuration error
+| Problem | What to check |
+| --- | --- |
+| Configuration error | Read the named file, entry, and property. Check commas, brackets, property spelling, value types, and escaped backslashes. Compare with `Config\Examples`. |
+| DNS failure | Confirm the `Host` or URL spelling and the required network or VPN connection. Try a fully qualified domain name when a short name does not resolve. |
+| Ping warning | The target may be healthy while its firewall blocks ICMP. Review TCP and application-level results. |
+| TCP failure | Confirm the port, firewall, network path, and the application listening on that port. |
+| Remote checks unavailable | Confirm CIM/WMI permissions and WinRM or WMI/DCOM firewall access. DNS, ping, and TCP can pass without remote-query access. |
+| Access denied | Confirm the configured `User`, password, and permission to query `root\cimv2`. Rejected explicit credentials are not retried. |
+| Service not found | Configure the Windows service name or exact display name, not the executable filename. |
+| Process not found | Use the executable name shown by Windows, with or without `.exe`. |
+| HTTP failure | Confirm the URL, expected status codes, response-time limit, and required content. Authentication gateways may return `401`, `403`, or a redirect. |
+| TLS warning or failure | Check expiration and Windows trust for the certificate chain. Avoid disabling certificate validation unless the endpoint and reason are known. |
+| Window closes immediately | Start `Run Server Postflight.cmd` and keep it beside `ServerPostflight.ps1` and the `Config` folder. |
 
-Read the filename and property named in the red message. Common causes are a missing
-comma, an extra final comma, mismatched brackets, a misspelled property, or a Windows
-username containing one backslash instead of two. Compare the entry with the matching
-file in `Config\Examples`.
-
-### DNS failure
-
-Confirm the Host spelling and connect to the required network or VPN. Try the fully
-qualified domain name if a short hostname cannot be resolved.
-
-### Ping warning
-
-The server may be healthy while its firewall blocks ICMP. Use the TCP, remote, and
-application results to decide. Ping alone does not fail a target.
-
-### TCP port failure
-
-Confirm the port number, server firewall, network path, and whether the application
-that owns the port has started. A listening port confirms connectivity, not that the
-entire application is healthy, so combine it with a service, process, or web check.
-
-### Access denied or remote checks unavailable
-
-Confirm the User spelling, password, and account permissions. The account needs
-remote CIM/WMI access to `root\cimv2`. Also verify WinRM or WMI/DCOM access through
-the server firewall. DNS, ping, and TCP may still pass without these permissions.
-
-### Service not found
-
-Use the service's Windows Name or exact DisplayName, not its `.exe` filename. An
-administrator can identify it in `services.msc` or with `Get-Service`.
-
-### Process not found
-
-Use the executable name shown in Task Manager, with or without `.exe`. Verify that
-the application normally keeps that process running and that its name has not
-changed after an upgrade.
-
-### HTTP status failure
-
-Confirm ExpectedCode with the application owner. Authentication gateways may return
-401, 403, or a redirect even while the site is reachable. Configure the expected
-result that genuinely proves the application is ready.
-
-### Certificate warning or trust failure
-
-An expiration warning means renewal should be planned. A trust failure usually
-means the computer lacks the issuing organization certificate or the site is
-presenting the wrong certificate. Fix trust rather than enabling
-SkipCertificateValidation whenever possible.
-
-### The window closes immediately
-
-Run **Run Server Postflight.cmd**, not ServerPostflight.ps1. If the launcher itself
-was moved away from the other files, restore the complete folder structure.
-
-## Files included with the application
+## Package contents
 
 | File or folder | Purpose |
-|---|---|
-| `Run Server Postflight.cmd` | Operator launcher; this is the file users double-click. |
-| `ServerPostflight.ps1` | Read-only implementation used by the launcher. Operators do not edit it. |
-| `Config\Settings.json` | Live global settings. |
-| `Config\ServerChecks.json` | Empty starter file for Windows server checks. |
-| `Config\WebChecks.json` | Empty starter file for website and HTTP endpoint checks. |
-| `Config\Examples` | Complete reference configurations that are not run. |
-| `Demo` | Sanitized example logs, reports, and screenshots; contains no runnable code. |
+| --- | --- |
+| `Run Server Postflight.cmd` | Launcher to double-click. |
+| `ServerPostflight.ps1` | Read-only health-check implementation. |
+| `Config\ServerChecks.json` | Empty starter list for Windows server checks. |
+| `Config\WebChecks.json` | Empty starter list for web checks. |
+| `Config\Settings.json` | Default application settings. |
+| `Config\Examples` | Complete synthetic configuration references. |
+| `Demo` | Sanitized example logs, reports, and screenshots. |
 | `Logs` | Created automatically for text logs and CSV data. |
-| `Reports` | Created automatically for timestamped HTML reports. |
+| `Reports` | Created automatically for HTML reports. |
+| `LICENSE` | MIT license. |
+
+Server Postflight is provided under the [MIT License](LICENSE).
